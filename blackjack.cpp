@@ -17,7 +17,9 @@ class Game{
 		bool removePlayer(string name){activePlayers.erase(name);}
 		bool addPlayer(Player player){activePlayers.insert({player.getName(), player});}
 		void printPlayers(){
-			for(i = activePlayers.begin(); i != activePlayers.end(); ++i)
+			// Found auto keyword in link cited for maps
+			// Starts at first entry of map and prints entry until the iterator equals the last entry
+			for(auto i = activePlayers.begin(); i != activePlayers.end(); ++i)
 				cout << "Player: " << i->first << "  |  $" << i->second.getChips() << endl;
 		}
 };
@@ -27,7 +29,7 @@ class Card{
 		string suit; // clubs, hearts, diamonds, spades
 		int value;
 		int altValue;
-		stirng cardName;
+		string cardName;
 	public:
 		Card(string suit, string cardName){
 			this->suit = suit;
@@ -45,16 +47,16 @@ class Card{
 				altValue = stoi(cardName);
 			}
 		}
-		getSuit(){return suit;}
-		getValue(){return value;}
-		getAltValue(){return altValue;}
-		getCardName(){return cardName;}
+		string getSuit(){return suit;}
+		int getValue(){return value;}
+		int getAltValue(){return altValue;}
+		string getCardName(){return cardName;}
 		void print(){
 			// TODO: print suit symbols
 			cout << cardName << " " << suit << endl;
 		}
 		bool isSame(Card card){
-			if(card.getSuit() == this.getSuit() && card.getCardName() == this.getCardName())
+			if(card.getSuit() == this->getSuit() && card.getCardName() == this->getCardName())
 				return true;
 			return false;
 		}
@@ -67,11 +69,11 @@ class Pile{
 	protected:
 		map <Card, string> cards;
 	public:
-		void addCard(Card card){
+		void addCard(Card& card){
 			cards.insert({card, card.getCardName()});
 		}
 		Card removeCard(Card card){
-			for(i = cards.begin(); i != cards.end(); ++i){
+			for(auto i = cards.begin(); i != cards.end(); ++i){
 				if(card.isSame(i->first)){
 					Card toDelete = i->first;
 					cards.erase(toDelete);
@@ -84,14 +86,16 @@ class Pile{
 
 class Deck: public Pile{
 	protected:
-		suits["Clubs", "Hearts", "Diamonds", "Spades"];
-		cardNames["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+		const static int suitNum = 4, cardTypeNum = 13;
+		string suits[suitNum] = {"Clubs", "Hearts", "Diamonds", "Spades"};
+		string cardNames[cardTypeNum] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 	public:
 		// Constructor creates a complete card deck (no jokers)
 		Deck(){
-			for(int i = 0; i < suits.size(); i++){
-				for(int j = 0; i < cardName.size(); j++){
-					this->addCard(new Card(suits[i], cardName[j]);
+			for(int i = 0; i < suitNum; i++){
+				for(int j = 0; i < cardTypeNum; j++){
+					Card *card = new Card(suits[i], cardNames[j]);
+					this->addCard(*card);
 				}
 			}
 		}
@@ -101,6 +105,17 @@ class Deck: public Pile{
 };
 
 class Player: public Pile{
+	protected:
+		string name;
+		double chips;
+	public:
+		Player(string name){
+			this->setName(name);
+			chips = 500.00;
+		}
+		string getName(){return name;}
+		double getChips(){return chips;}
+		void setName(string name){this->name = name;}
 	// TODO
 };
 
