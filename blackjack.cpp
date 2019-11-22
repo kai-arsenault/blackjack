@@ -14,11 +14,13 @@ class Game{
 	protected:
 		// https://www.geeksforgeeks.org/list-cpp-stl/
 		list<Player> activePlayers;
+		Dealer dealer;
 		int rounds;
 		Deck deck;
 	public:
 		Game(int playerNumber){
-			this->addPlayer(new Dealer()); // Add dealer in first location
+			dealer = new Dealer();
+			this->addPlayer(dealer); // Add dealer in first location
 			playerNumber > 5 ? playerNumber = 5 : playerNumber = playerNumber; // Set maximum opponents to be 5
 			playerNumber < 1 ? playerNumber = 1 : playerNumber = playerNumber; // Set minimum opponents to be 1
 			string name;
@@ -33,17 +35,23 @@ class Game{
 		bool addPlayer(Player player){activePlayers.push_back(player);}
 		void printPlayers(){ // Print all player names and chip count
 			// https://stackoverflow.com/questions/22269435/how-to-iterate-through-a-list-of-objects-in-c/22269465
-			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player)
-				cout << "Player: " << player.getName() << "  |  $" << player.getChips() << endl;
+			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user)
+				cout << "Player: " << user.getName() << "  |  $" << user.getChips() << endl;
 		}
 		void gameSummary(){
 			cout << "Total rounds: " << getRounds() << endl;
 			this->printPlayers();
 		}
 		void checkPlayers(){ // Check if any players have run out of chips
-			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
+			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
 				if(player.getChips() <= 0)
 					activePlayers.erase(player);
+			}
+		}
+		int getTopCurrentPoints(){
+			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+				if(user->currentPoints !> 21)
+					return user->currentPoints;
 			}
 		}
 		void newRound(){
@@ -51,18 +59,19 @@ class Game{
 			this->checkPlayers();
 			deck.shuffle();
 			deck.deal(activePlayers);
+			deck.deal(deal);
 
 			// All players play
-			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player)
-				player->play()
+			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+				user->play();
+			}
+			activePlayers = activePlayers.sort();
+			dealer.play(getTopCurrentPoints());
 
-			list<Player>::iterator dealer = activePlayers.begin();
 			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
 				if(player->getName() != dealer->getName()){ // Do not compare dealer to itself
 					if(player->isBust()){ // If player bust, they lose
 						
-					}
-
 					}
 				}
 			}
@@ -96,9 +105,8 @@ class Card{
 		int getValue(){return value;}
 		int getAltValue(){return altValue;}
 		string getCardName(){return cardName;}
-		void print(){
-			// TODO: print suit symbols
-			cout << cardName << " " << suit << endl;
+		void printCard(){
+			cout << cardName << suit << endl;
 		}
 		bool isSame(Card card){
 			if(card.getSuit() == this->getSuit() && card.getCardName() == this->getCardName())
@@ -166,16 +174,7 @@ class Deck: public Pile{
 };
 
 class Player: public Pile{
-	protected:
-		string name = "Null";
-		int chips = 0;
 	public:
-		Player(){
-			chips += 500;
-		}
-		string getName(){return name;}
-		double getChips(){return chips;}
-		void setName(string name){this->name = name;}
 		int currentPoints(){
 			int total = 0;
 			int altTotal = 0;
@@ -193,18 +192,17 @@ class Player: public Pile{
 		}
 		bool isBust(){this->currentPoints() > 21 ? return true : return false;}
 		void hit(Card& card){this->addCard(card);}
-	// TODO
 };
 
 class Dealer: public Player{
 	public:
-		Dealer() : Player("Dealer"){
+		Dealer(){
 			chips += 1000000;
 		}
-        bool play(){
+        bool play(int scoreToBeat){
 			if(isBust())
 				return false;
-			else if(currentPoints()>16)
+			else if(currentPoints()>=scoreToBeat)
 				return true;
 			else{
 				this->hit();
@@ -214,15 +212,24 @@ class Dealer: public Player{
 };
 
 class User: public Player{
+	private:
+		string name;
+		int chips = 500;
 	public:
+		User(string name){
+			this->name = name
+		}
+		string getName(){return name;}
+		double getChips(){return chips;}
+		void setName(string name){this->name = name;}
         bool play(){
-			if isBust(())
+			if (isBust())
 				return false;
-			else if (currentPoints() == 21){
+			else if (currentPoints() == 21)
 				return true;
 			else{
 				while(true){
-					cout << "Current point count: " << this->currentPoints() << "\nHit? (y/n): ";
+					cout << getHand() << "Current point count: " << this->currentPoints() << "\nHit? (y/n): ";
 					char user;
 					cin >> user;
 					if(user == 'y' || user == 'Y'){
@@ -237,6 +244,11 @@ class User: public Player{
 				}
 			}
         }
+		bool getHand(){
+			for(auto card = cards.begin(); card != cards.end(); ++card)
+				cout << card->printCard();
+			cout << endl;
+		}
 };
 
 
