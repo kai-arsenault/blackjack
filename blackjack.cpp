@@ -170,7 +170,7 @@ class Deck: public Pile{
 			}
 			return;
 		}
-		void dealDealer(list<Dealer> &dealer){
+		void deal(Dealer &dealer){
 			for(int i=0;i<2;i++){
 				iterator iter1=Deck.begin();
 				Deck *temp = Deck.begin();
