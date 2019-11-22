@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iterator>
-#include <map>
 #include <string>
 #include <list>
 
@@ -8,19 +7,56 @@ using namespace std;
 
 class Game{
 	protected:
-		// Maps and all functions associated with maps unless otherwise cited https://www.geeksforgeeks.org/map-associative-containers-the-c-standard-template-library-stl/
-		map<string, Player> activePlayers;	// Map - key:name value:Player
+		// https://www.geeksforgeeks.org/list-cpp-stl/
+		list<Player> activePlayers;
 		int rounds;
+		Deck deck;
 	public:
+		Game(string name, int opponentNum){
+			this->addPlayer(new Dealer()); // Add dealer in first location
+			this->addPlayer(new User(name)); // Add user
+			opponentNum > 5 ? opponentNum = 5 : opponentNum = opponentNum; // Set maximum opponents to be 5
+			for(int i = 0; i < opponentNum; i++)
+				this->addPlayer(new Bot()); // Add desired number of bots
+			this->deck = new Deck();
+		}
 		int getRounds(){return rounds;}
-		void newRound(){rounds++;}
-		bool removePlayer(string name){activePlayers.erase(name);}
-		bool addPlayer(Player player){activePlayers.insert({player.getName(), player});}
-		void printPlayers(){
-			// Found auto keyword in link cited for maps
-			// Starts at first entry of map and prints entry until the iterator equals the last entry
-			for(auto i = activePlayers.begin(); i != activePlayers.end(); ++i)
-				cout << "Player: " << i->first << "  |  $" << i->second.getChips() << endl;
+		bool addPlayer(Player player){activePlayers.push_back(player);}
+		void printPlayers(){ // Print all player names and chip count
+			// https://stackoverflow.com/questions/22269435/how-to-iterate-through-a-list-of-objects-in-c/22269465
+			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player)
+				cout << "Player: " << player.getName() << "  |  $" << player.getChips() << endl;
+		}
+		void gameSummary(){
+			cout << "Total rounds: " << getRounds() << endl;
+			this->printPlayers();
+		}
+		void checkPlayers(){ // Check if any players have run out of chips
+			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
+				if(player.getChips() <= 0)
+					activePlayers.erase(player);
+			}
+		}
+		void newRound(){
+			rounds++;
+			this->checkPlayers();
+			deck.shuffle();
+			deck.deal(activePlayers);
+
+			// All players play
+			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player)
+				player->play()
+
+			list<Player>::iterator dealer = activePlayers.begin();
+			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
+				if(player->getName() != dealer->getName()){ // Do not compare dealer to itself
+					if(player->isBust()){ // If player bust, they lose
+						
+					}
+
+					}
+				}
+			}
 		}
 };
 
@@ -106,12 +142,11 @@ class Deck: public Pile{
 
 class Player: public Pile{
 	protected:
-		string name;
-		double chips;
+		string name = "Null";
+		int chips;
 	public:
-		Player(string name){
-			this->setName(name);
-			chips = 500.00;
+		Player(){
+			chips = 500;
 		}
 		string getName(){return name;}
 		double getChips(){return chips;}
@@ -128,6 +163,9 @@ class Player: public Pile{
 			else
 				return altTotal;
 		}
+		bool operator <(const Player &player) const{
+			return currentPoints()<player.currentPoints();
+		}
 		bool isBust(){this->currentPoints() > 21 ? return true : return false;}
 		void hit(Card& card){this->addCard(card);}
 	// TODO
@@ -141,9 +179,7 @@ class User: public Player{
 	// TODO:
 };
 
-class Bot: public Player{
-	// TODO:
-};
+
 
 int main(){
 	// TODO:
