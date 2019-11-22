@@ -6,6 +6,11 @@
 
 using namespace std;
 
+const char heart[] = "\xe2\x99\xa5";//https://www.fileformat.info/info/unicode/char/2665/index.htm
+const char spade[] = "\xe2\x99\xa0";//https://www.fileformat.info/info/unicode/char/2660/index.htm
+const char diamond[] = "\xe2\x99\xa6";//https://www.fileformat.info/info/unicode/char/2666/index.htm
+const char club[] = "\xe2\x99\xa3";//https://www.fileformat.info/info/unicode/char/2663/index.htm
+
 class Game{
 	protected:
 		// Maps and all functions associated with maps unless otherwise cited https://www.geeksforgeeks.org/map-associative-containers-the-c-standard-template-library-stl/
@@ -26,12 +31,12 @@ class Game{
 
 class Card{
 	protected:
-		string suit; // clubs, hearts, diamonds, spades
+		char suit; // clubs, hearts, diamonds, spades
 		int value;
 		int altValue;
 		string cardName;
 	public:
-		Card(string suit, string cardName){
+		Card(char suit, string cardName){
 			this->suit = suit;
 			this->cardName = cardName;
 			if(cardName == "J" || cardName == "Q" || cardName == "K"){
@@ -47,7 +52,7 @@ class Card{
 				altValue = stoi(cardName);
 			}
 		}
-		string getSuit(){return suit;}
+		char getSuit(){return suit;}
 		int getValue(){return value;}
 		int getAltValue(){return altValue;}
 		string getCardName(){return cardName;}
@@ -87,7 +92,7 @@ class Pile{
 class Deck: public Pile{
 	protected:
 		const static int suitNum = 4, cardTypeNum = 13;
-		string suits[suitNum] = {"Clubs", "Hearts", "Diamonds", "Spades"};
+		char suits[suitNum] = {clubs, hearts, diamonds, spades};
 		string cardNames[cardTypeNum] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 	public:
 		// Constructor creates a complete card deck (no jokers)
@@ -99,8 +104,24 @@ class Deck: public Pile{
 				}
 			}
 		}
-		// TODO: add shuffle		
-		void shuffle(){}
+		// TODO: add shuffle
+		void shuffle(){
+			iterator iter1=Deck.begin();
+			iterator iter2=Deck.end();
+			Deck.random_shuffle(iter1, iter2);
+		}
+		void deal(list<Player> &activePlayers){
+			int size = activePlayers.size();
+			for(int i=0;i<2;i++){
+				for(int j=0;j<size;j++){
+					iterator iter1=Deck.begin();
+					Deck *temp = Deck.begin()
+					activePlayers[j].addCard(temp);
+					Deck.erase(iter1);
+				}
+			}
+			return;
+		}
 		~Deck(){}
 };
 
