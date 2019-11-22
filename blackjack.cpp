@@ -150,7 +150,7 @@ class Deck: public Pile{
 			iterator iter2=Deck.end();
 			Deck.random_shuffle(iter1, iter2);
 		}
-		void deal(list<Player> &activePlayers){
+		void deal(list<User> &activePlayers){
 			int size = activePlayers.size();
 			for(int i=0;i<2;i++){
 				for(int j=0;j<size;j++){
@@ -159,6 +159,15 @@ class Deck: public Pile{
 					activePlayers[j].addCard(temp);
 					Deck.erase(iter1);
 				}
+			}
+			return;
+		}
+		void dealDealer(list<Dealer> &dealer){
+			for(int i=0;i<2;i++){
+				iterator iter1=Deck.begin();
+				Deck *temp = Deck.begin();
+				Dealer[i].addCard(temp);
+				Deck.erase(iter1);
 			}
 			return;
 		}
