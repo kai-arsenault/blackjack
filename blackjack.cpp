@@ -17,12 +17,16 @@ class Game{
 		int rounds;
 		Deck deck;
 	public:
-		Game(string name, int opponentNum){
+		Game(int playerNumber){
 			this->addPlayer(new Dealer()); // Add dealer in first location
-			this->addPlayer(new User(name)); // Add user
-			opponentNum > 5 ? opponentNum = 5 : opponentNum = opponentNum; // Set maximum opponents to be 5
-			for(int i = 0; i < opponentNum; i++)
-				this->addPlayer(new Bot()); // Add desired number of bots
+			playerNumber > 5 ? playerNumber = 5 : playerNumber = playerNumber; // Set maximum opponents to be 5
+			playerNumber < 1 ? playerNumber = 1 : playerNumber = playerNumber; // Set minimum opponents to be 1
+			string name;
+			for(int i = 0; i < playerNumber; i++){
+				cout << "Enter name: ";
+				cin >> name;
+				this->addPlayer(new User(name));
+			}
 			this->deck = new Deck();
 		}
 		int getRounds(){return rounds;}
@@ -164,10 +168,10 @@ class Deck: public Pile{
 class Player: public Pile{
 	protected:
 		string name = "Null";
-		int chips;
+		int chips = 0;
 	public:
 		Player(){
-			chips = 500;
+			chips += 500;
 		}
 		string getName(){return name;}
 		double getChips(){return chips;}
@@ -193,11 +197,46 @@ class Player: public Pile{
 };
 
 class Dealer: public Player{
-	// TODO:
+	public:
+		Dealer() : Player("Dealer"){
+			chips += 1000000;
+		}
+        bool play(){
+			if(isBust())
+				return false;
+			else if(currentPoints()>16)
+				return true;
+			else{
+				this->hit();
+				return play();
+			}
+        }
 };
 
 class User: public Player{
-	// TODO:
+	public:
+        bool play(){
+			if isBust(())
+				return false;
+			else if (currentPoints() == 21){
+				return true;
+			else{
+				while(true){
+					cout << "Current point count: " << this->currentPoints() << "\nHit? (y/n): ";
+					char user;
+					cin >> user;
+					if(user == 'y' || user == 'Y'){
+						this->hit();
+						return play();
+					}
+					else if(user == 'n' || user == 'N'){
+						return true;
+					}
+					else
+						cout << "Error! Invalid input.\n"
+				}
+			}
+        }
 };
 
 
