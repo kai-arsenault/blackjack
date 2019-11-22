@@ -9,7 +9,7 @@ using namespace std;
 class Game{
 	protected:
 		// Maps and all functions associated with maps unless otherwise cited https://www.geeksforgeeks.org/map-associative-containers-the-c-standard-template-library-stl/
-		map<string, Player> activePlayers;	// Map - key:Player value:cash
+		map<string, Player> activePlayers;	// Map - key:name value:Player
 		int rounds;
 	public:
 		int getRounds(){return rounds;}
@@ -116,6 +116,20 @@ class Player: public Pile{
 		string getName(){return name;}
 		double getChips(){return chips;}
 		void setName(string name){this->name = name;}
+		int currentPoints(){
+			int total = 0;
+			int altTotal = 0;
+			for(auto card = cards.begin(); card != cards.end(); ++card){
+				total += card->first->total;
+				altTotal += card->first->altTotal;
+			}
+			if(total <= 21)
+				return total;
+			else
+				return altTotal;
+		}
+		bool isBust(){this->currentPoints() > 21 ? return true : return false;}
+		void hit(Card& card){this->addCard(card);}
 	// TODO
 };
 
