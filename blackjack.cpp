@@ -1,92 +1,22 @@
+// Must be compiled to support C++11
+// Use the following
+//    g++ -g -std=c++11 blackjack.cpp
 #include <iostream>
 #include <iterator>
 #include <string>
 #include <list>
+#include <algorithm>
 
 using namespace std;
 
-const char heart[] = "\xe2\x99\xa5";//https://www.fileformat.info/info/unicode/char/2665/index.htm
-const char spade[] = "\xe2\x99\xa0";//https://www.fileformat.info/info/unicode/char/2660/index.htm
-const char diamond[] = "\xe2\x99\xa6";//https://www.fileformat.info/info/unicode/char/2666/index.htm
-const char club[] = "\xe2\x99\xa3";//https://www.fileformat.info/info/unicode/char/2663/index.htm
-
-class Game{
-	protected:
-		// https://www.geeksforgeeks.org/list-cpp-stl/
-		list<Player> activePlayers;
-		Dealer dealer;
-		int rounds;
-		Deck deck;
-	public:
-		Game(int playerNumber){
-			cout << "Welcome to blackjack\n";
-			dealer = new Dealer();
-			this->addPlayer(dealer); // Add dealer in first location
-			playerNumber > 5 ? playerNumber = 5 : playerNumber = playerNumber; // Set maximum opponents to be 5
-			playerNumber < 1 ? playerNumber = 1 : playerNumber = playerNumber; // Set minimum opponents to be 1
-			string name;
-			for(int i = 0; i < playerNumber; i++){
-				cout << "Enter name: ";
-				cin >> name;
-				this->addPlayer(new User(name));
-			}
-			this->deck = new Deck();
-		}
-		int getRounds(){return rounds;}
-		bool addPlayer(Player player){activePlayers.push_back(player);}
-		void printPlayers(){ // Print all player names and chip count
-			// https://stackoverflow.com/questions/22269435/how-to-iterate-through-a-list-of-objects-in-c/22269465
-			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user)
-				cout << "Player: " << user.getName() << "  |  $" << user.getChips() << endl;
-		}
-		void gameSummary(){
-			cout << "Total rounds: " << getRounds() << endl;
-			this->printPlayers();
-		}
-		void checkPlayers(){ // Check if any players have run out of chips
-			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
-				if(player.getChips() <= 0)
-					activePlayers.erase(player);
-			}
-		}
-		int getTopCurrentPoints(){
-			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
-				if(user->currentPoints !> 21)
-					return user->currentPoints;
-			}
-		}
-		void newRound(){
-			rounds++;
-			this->checkPlayers();
-			deck.shuffle();
-			deck.deal(activePlayers);
-			deck.deal(dealer);
-
-			// All players play
-			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
-				user->play(dealer.showPublicHand());
-			}
-			activePlayers = activePlayers.sort();
-			dealer.play(getTopCurrentPoints());
-
-			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
-				if(player->getName() != dealer->getName()){ // Do not compare dealer to itself
-					if(player->isBust()){ // If player bust, they lose
-						
-					}
-				}
-			}
-		}
-};
-
 class Card{
 	protected:
-		char suit; // clubs, hearts, diamonds, spades
+		string suit; // clubs, hearts, diamonds, spades
 		int value;
 		int altValue;
 		string cardName;
 	public:
-		Card(char suit, string cardName){
+		Card(string suit, string cardName){
 			this->suit = suit;
 			this->cardName = cardName;
 			if(cardName == "J" || cardName == "Q" || cardName == "K"){
@@ -102,7 +32,7 @@ class Card{
 				altValue = stoi(cardName);
 			}
 		}
-		char getSuit(){return suit;}
+		string getSuit(){return suit;}
 		int getValue(){return value;}
 		int getAltValue(){return altValue;}
 		string getCardName(){return cardName;}
@@ -125,10 +55,10 @@ class Pile{
 			cards.push_back(card);
 		}
 		Card removeCard(Card card){
-			for(auto i = cards.begin(); i != cards.end(); ++i){
-				if(card.isSame(i)){
-					Card toDelete = i;
-					cards.erase(toDelete);
+			for(list<Card>::iterator card_i = cards.begin(); card_i != cards.end(); ++card_i){
+				if(card.isSame(*card_i)){
+					Card toDelete = *card_i;
+					cards.erase(card_i);
 					return toDelete;
 				}
 			}
@@ -139,7 +69,11 @@ class Pile{
 class Deck: public Pile{
 	protected:
 		const static int suitNum = 4, cardTypeNum = 13;
-		char suits[suitNum] = {clubs, hearts, diamonds, spades};
+		const string heart = "\xe2\x99\xa5";//https://www.fileformat.info/info/unicode/char/2665/index.htm
+		const string spade = "\xe2\x99\xa0";//https://www.fileformat.info/info/unicode/char/2660/index.htm
+		const string diamond = "\xe2\x99\xa6";//https://www.fileformat.info/info/unicode/char/2666/index.htm
+		const string club = "\xe2\x99\xa3";//https://www.fileformat.info/info/unicode/char/2663/index.htm
+		string suits[suitNum] = {club, heart, diamond, spade};
 		string cardNames[cardTypeNum] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 	public:
 		// Constructor creates a complete card deck (no jokers)
@@ -152,20 +86,20 @@ class Deck: public Pile{
 			}
 		}
 		void shuffle(){
-			iterator iter1=Deck.begin();
-			iterator iter2=Deck.end();
-			Deck.random_shuffle(iter1, iter2);
+			cards.random_shuffle(cards.begin(), cards.end());
 		}
 		Card draw(){
 			list<Card>::iterator toDelete = cards.begin();
 			cards.erase(toDelete);
-			return toDelete;
+			return *toDelete;
 		}
-		void deal(list<User> &activePlayers){
+		// changed from void deal(list<User> &activePlayers){
+		void deal(list<Pile>& activePlayers){
 			int size = activePlayers.size();
-			for(int i=0;i<2;i++){
-				for(int j=0;j<size;j++){
-					activePlayers[j].addCard(draw());
+			for(int i = 0; i < 2; i++){
+				// old for(int j = 0; j < size; j++){
+				for(list<Pile> activePlayers_i = activePlayers.begin(); activePlayers_i != activePlayers.end(); ++activePlayers_i){
+					activePlayers_i.addCard(draw());
 					// iterator iter1=Deck.begin();
 					// Deck *temp = Deck.begin()
 					// activePlayers[j].addCard(temp);
@@ -174,7 +108,7 @@ class Deck: public Pile{
 			}
 			return;
 		}
-		void deal(Dealer &dealer){
+		void deal(Pile& dealer){
 			for(int i=0;i<2;i++){
 				dealer.addCard(draw());
 				// iterator iter1=Deck.begin();
@@ -269,7 +203,74 @@ class User: public Player{
         }
 };
 
+class Game{
+	protected:
+		// https://www.geeksforgeeks.org/list-cpp-stl/
+		list<Player> activePlayers;
+		Dealer dealer;
+		int rounds;
+		Deck deck;
+	public:
+		Game(int playerNumber){
+			cout << "Welcome to blackjack\n";
+			dealer = new Dealer();
+			this->addPlayer(dealer); // Add dealer in first location
+			playerNumber > 5 ? playerNumber = 5 : playerNumber = playerNumber; // Set maximum opponents to be 5
+			playerNumber < 1 ? playerNumber = 1 : playerNumber = playerNumber; // Set minimum opponents to be 1
+			string name;
+			for(int i = 0; i < playerNumber; i++){
+				cout << "Enter name: ";
+				cin >> name;
+				this->addPlayer(new User(name));
+			}
+			this->deck = new Deck();
+		}
+		int getRounds(){return rounds;}
+		bool addPlayer(Player player){activePlayers.push_back(player);}
+		void printPlayers(){ // Print all player names and chip count
+			// https://stackoverflow.com/questions/22269435/how-to-iterate-through-a-list-of-objects-in-c/22269465
+			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user)
+				cout << "Player: " << user.getName() << "  |  $" << user.getChips() << endl;
+		}
+		void gameSummary(){
+			cout << "Total rounds: " << getRounds() << endl;
+			this->printPlayers();
+		}
+		void checkPlayers(){ // Check if any players have run out of chips
+			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+				if(player.getChips() <= 0)
+					activePlayers.erase(player);
+			}
+		}
+		int getTopCurrentPoints(){
+			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+				if(user->currentPoints !> 21)
+					return user->currentPoints;
+			}
+		}
+		void newRound(){
+			rounds++;
+			this->checkPlayers();
+			deck.shuffle();
+			deck.deal(activePlayers);
+			deck.deal(dealer);
 
+			// All players play
+			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+				user->play(dealer.showPublicHand());
+			}
+			activePlayers = activePlayers.sort();
+			dealer.play(getTopCurrentPoints());
+
+			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
+				if(player->getName() != dealer->getName()){ // Do not compare dealer to itself
+					if(player->isBust()){ // If player bust, they lose
+						
+					}
+				}
+			}
+		}
+};
 
 int main(){
 	Game game = new Game(2);
