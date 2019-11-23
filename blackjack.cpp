@@ -19,6 +19,7 @@ class Game{
 		Deck deck;
 	public:
 		Game(int playerNumber){
+			cout << "Welcome to blackjack\n";
 			dealer = new Dealer();
 			this->addPlayer(dealer); // Add dealer in first location
 			playerNumber > 5 ? playerNumber = 5 : playerNumber = playerNumber; // Set maximum opponents to be 5
@@ -59,11 +60,11 @@ class Game{
 			this->checkPlayers();
 			deck.shuffle();
 			deck.deal(activePlayers);
-			deck.deal(deal);
+			deck.deal(dealer);
 
 			// All players play
 			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
-				user->play();
+				user->play(dealer.showPublicHand());
 			}
 			activePlayers = activePlayers.sort();
 			dealer.play(getTopCurrentPoints());
@@ -105,9 +106,7 @@ class Card{
 		int getValue(){return value;}
 		int getAltValue(){return altValue;}
 		string getCardName(){return cardName;}
-		void printCard(){
-			cout << cardName << suit << endl;
-		}
+		string printCard(){return cardName + suit;}
 		bool isSame(Card card){
 			if(card.getSuit() == this->getSuit() && card.getCardName() == this->getCardName())
 				return true;
@@ -120,15 +119,15 @@ class Card{
 // Pile cannot be instantiated
 class Pile{
 	protected:
-		map <Card, string> cards;
+		list<Card> cards;
 	public:
 		void addCard(Card& card){
-			cards.insert({card, card.getCardName()});
+			cards.push_back(card);
 		}
 		Card removeCard(Card card){
 			for(auto i = cards.begin(); i != cards.end(); ++i){
-				if(card.isSame(i->first)){
-					Card toDelete = i->first;
+				if(card.isSame(i)){
+					Card toDelete = i;
 					cards.erase(toDelete);
 					return toDelete;
 				}
@@ -152,30 +151,36 @@ class Deck: public Pile{
 				}
 			}
 		}
-		// TODO: add shuffle
 		void shuffle(){
 			iterator iter1=Deck.begin();
 			iterator iter2=Deck.end();
 			Deck.random_shuffle(iter1, iter2);
 		}
+		Card draw(){
+			list<Card>::iterator toDelete = cards.begin();
+			cards.erase(toDelete);
+			return toDelete;
+		}
 		void deal(list<User> &activePlayers){
 			int size = activePlayers.size();
 			for(int i=0;i<2;i++){
 				for(int j=0;j<size;j++){
-					iterator iter1=Deck.begin();
-					Deck *temp = Deck.begin()
-					activePlayers[j].addCard(temp);
-					Deck.erase(iter1);
+					activePlayers[j].addCard(draw());
+					// iterator iter1=Deck.begin();
+					// Deck *temp = Deck.begin()
+					// activePlayers[j].addCard(temp);
+					// Deck.erase(iter1);
 				}
 			}
 			return;
 		}
 		void deal(Dealer &dealer){
 			for(int i=0;i<2;i++){
-				iterator iter1=Deck.begin();
-				Deck *temp = Deck.begin();
-				Dealer[i].addCard(temp);
-				Deck.erase(iter1);
+				dealer.addCard(draw());
+				// iterator iter1=Deck.begin();
+				// Deck *temp = Deck.begin();
+				// Dealer[i].addCard(temp);
+				// Deck.erase(iter1);
 			}
 			return;
 		}
@@ -218,6 +223,10 @@ class Dealer: public Player{
 				return play();
 			}
         }
+		Card showPublicHand(){
+			list<Card>::iterator toShow = cards.begin();
+			return toShow->printCard() + " ??\n";
+		}
 };
 
 class User: public Player{
@@ -231,14 +240,19 @@ class User: public Player{
 		string getName(){return name;}
 		double getChips(){return chips;}
 		void setName(string name){this->name = name;}
-        bool play(){
+		void getHand(){
+			for(auto card = cards.begin(); card != cards.end(); ++card)
+				cout << card->printCard();
+			cout << endl;
+		}
+        bool play(string dealerHand){
 			if (isBust())
 				return false;
 			else if (currentPoints() == 21)
 				return true;
 			else{
 				while(true){
-					cout << getHand() << "Current point count: " << this->currentPoints() << "\nHit? (y/n): ";
+					cout << "Dealer: " << dealerHand << getName() << ": " << getHand() << "Current point count: " << this->currentPoints() << "\nHit? (y/n): ";
 					char user;
 					cin >> user;
 					if(user == 'y' || user == 'Y'){
@@ -253,16 +267,31 @@ class User: public Player{
 				}
 			}
         }
-		bool getHand(){
-			for(auto card = cards.begin(); card != cards.end(); ++card)
-				cout << card->printCard();
-			cout << endl;
-		}
 };
 
 
 
 int main(){
-	// TODO:
+	Game game = new Game(2);
+	char user;
+	do{
+		cout << "Enter P to play, S to check score, and Q to quit\n... ";
+		cin >> user;
+		switch(user){
+			case "p":
+			case "P":
+				game.newRound();
+				break;
+			case "s":
+			case "S":
+				game.gameSummary();
+				break;
+			case "q":
+			case "Q":
+				break;
+			default:
+				cout << "Error! Invalid option.\n";
+		}
+	}(while user != "q" && user != "Q");
 	return 0;
 }
