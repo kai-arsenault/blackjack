@@ -1,6 +1,8 @@
-// Must be compiled to support C++11
+// TODO: read the following
 // Use the following
 //    g++ -g -std=c++11 blackjack.cpp
+//
+// TODO: add a remove for all news
 #include <iostream>
 #include <iterator>
 #include <string>
@@ -86,7 +88,7 @@ class Deck: public Pile{
 			}
 		}
 		void shuffle(){
-			cards.random_shuffle(cards.begin(), cards.end());
+			random_shuffle(cards.begin(), cards.end());
 		}
 		Card draw(){
 			list<Card>::iterator toDelete = cards.begin();
@@ -98,7 +100,7 @@ class Deck: public Pile{
 			int size = activePlayers.size();
 			for(int i = 0; i < 2; i++){
 				// old for(int j = 0; j < size; j++){
-				for(list<Pile> activePlayers_i = activePlayers.begin(); activePlayers_i != activePlayers.end(); ++activePlayers_i){
+				for(list<Pile>::iterator activePlayers_i = activePlayers.begin(); activePlayers_i != activePlayers.end(); ++activePlayers_i){
 					activePlayers_i.addCard(draw());
 					// iterator iter1=Deck.begin();
 					// Deck *temp = Deck.begin()
@@ -274,25 +276,22 @@ class Game{
 
 int main(){
 	Game game = new Game(2);
-	char user;
+	int user;
 	do{
-		cout << "Enter P to play, S to check score, and Q to quit\n... ";
+		cout << "Enter 1 to play, 2 to check score, and 0 to quit\n... ";
 		cin >> user;
 		switch(user){
-			case "p":
-			case "P":
+			case 1:
 				game.newRound();
 				break;
-			case "s":
-			case "S":
+			case 2:
 				game.gameSummary();
 				break;
-			case "q":
-			case "Q":
+			case 0:
 				break;
 			default:
 				cout << "Error! Invalid option.\n";
 		}
-	}(while user != "q" && user != "Q");
+	}while (user != 0);
 	return 0;
 }
