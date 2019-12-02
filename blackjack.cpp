@@ -277,7 +277,7 @@ class Game{
 			// 		if(user->isBust()){ // If user bust, they lose
 						
 			// 		}
-			}
+			//}
 		}
 		~Game(){
 
