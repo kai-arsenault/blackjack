@@ -53,7 +53,7 @@ class Pile{
 	protected:
 		list<Card> cards;
 	public:
-		void addCard(Card& card){
+		void addCard(Card card){
 			cards.push_back(card);
 		}
 		Card removeCard(Card card){
@@ -95,17 +95,11 @@ class Deck: public Pile{
 			cards.erase(toDelete);
 			return *toDelete;
 		}
-		// changed from void deal(list<User> &activePlayers){
 		void deal(list<Pile>& activePlayers){
 			int size = activePlayers.size();
 			for(int i = 0; i < 2; i++){
-				// old for(int j = 0; j < size; j++){
 				for(list<Pile>::iterator activePlayers_i = activePlayers.begin(); activePlayers_i != activePlayers.end(); ++activePlayers_i){
-					activePlayers_i.addCard(draw());
-					// iterator iter1=Deck.begin();
-					// Deck *temp = Deck.begin()
-					// activePlayers[j].addCard(temp);
-					// Deck.erase(iter1);
+					activePlayers_i->addCard(draw());
 				}
 			}
 			return;
@@ -113,10 +107,6 @@ class Deck: public Pile{
 		void deal(Pile& dealer){
 			for(int i=0;i<2;i++){
 				dealer.addCard(draw());
-				// iterator iter1=Deck.begin();
-				// Deck *temp = Deck.begin();
-				// Dealer[i].addCard(temp);
-				// Deck.erase(iter1);
 			}
 			return;
 		}
@@ -124,42 +114,55 @@ class Deck: public Pile{
 };
 
 class Player: public Pile{
+	private:
+		static Deck deck;
+		int currentPoints;
 	public:
-		int currentPoints(){
-			int total = 0;
-			int altTotal = 0;
+		int getCurrentPoints() const{return currentPoints;}
+		int calculateCurrentPoints(){
+			int value = 0;
+			int altValue = 0;
 			for(auto card = cards.begin(); card != cards.end(); ++card){
-				total += card->first->total;
-				altTotal += card->first->altTotal;
+				value += card->getValue();
+				altValue += card->getAltValue();
 			}
-			if(total <= 21)
-				return total;
+			if(value <= 21){
+				currentPoints = value;
+				return value;
+			}
+			else{
+				currentPoints = altValue;
+				return altValue;
+			}
+		}
+		inline bool operator <(const Player &player) const{
+			return this->getCurrentPoints() < player.getCurrentPoints();
+		}
+		bool isBust(){
+			if(this->calculateCurrentPoints() > 21)
+				return true;
 			else
-				return altTotal;
+				return false;
 		}
-		bool operator <(const Player &player) const{
-			return currentPoints()<player.currentPoints();
+		void hit(){
+			this->addCard(deck.draw());
+			this->calculateCurrentPoints();
 		}
-		bool isBust(){this->currentPoints() > 21 ? return true : return false;}
-		void hit(Card& card){this->addCard(card);}
 };
 
 class Dealer: public Player{
 	public:
-		Dealer(){
-			chips += 1000000;
-		}
         bool play(int scoreToBeat){
 			if(isBust())
 				return false;
-			else if(currentPoints()>=scoreToBeat)
+			else if(calculateCurrentPoints()>=scoreToBeat)
 				return true;
 			else{
 				this->hit();
-				return play();
+				return this->play(scoreToBeat);
 			}
         }
-		Card showPublicHand(){
+		string showPublicHand(){
 			list<Card>::iterator toShow = cards.begin();
 			return toShow->printCard() + " ??\n";
 		}
@@ -171,35 +174,38 @@ class User: public Player{
 		int chips = 500;
 	public:
 		User(string name){
-			this->name = name
+			this->name = name;
 		}
 		string getName(){return name;}
 		double getChips(){return chips;}
 		void setName(string name){this->name = name;}
-		void getHand(){
+		string getHand(){
+			string hand = "";
 			for(auto card = cards.begin(); card != cards.end(); ++card)
-				cout << card->printCard();
-			cout << endl;
+				hand += card->printCard() + " ";
+			hand += "\n";
+			return hand;
 		}
         bool play(string dealerHand){
 			if (isBust())
 				return false;
-			else if (currentPoints() == 21)
+			else if (calculateCurrentPoints() == 21)
 				return true;
 			else{
 				while(true){
-					cout << "Dealer: " << dealerHand << getName() << ": " << getHand() << "Current point count: " << this->currentPoints() << "\nHit? (y/n): ";
+					string moveMessage = string("Dealer: " + dealerHand + " " + this->getName() + ": " + this->getHand() + "\nCurrent point count: " + string(this->calculateCurrentPoints()) + "\nHit? (y/n): ");
+					cout << moveMessage;
 					char user;
 					cin >> user;
 					if(user == 'y' || user == 'Y'){
 						this->hit();
-						return play();
+						return this->play(dealerHand);
 					}
 					else if(user == 'n' || user == 'N'){
 						return true;
 					}
 					else
-						cout << "Error! Invalid input.\n"
+						cout << "Error! Invalid input.\n";
 				}
 			}
         }
@@ -209,26 +215,29 @@ class Game{
 	protected:
 		// https://www.geeksforgeeks.org/list-cpp-stl/
 		list<Player> activePlayers;
-		Dealer dealer;
+		Dealer *dealer;
 		int rounds;
-		Deck deck;
+		Deck *deck;
 	public:
 		Game(int playerNumber){
+			Deck *deck = new Deck();
+			this->deck = deck;
 			cout << "Welcome to blackjack\n";
-			dealer = new Dealer();
-			this->addPlayer(dealer); // Add dealer in first location
+			Dealer *dealer = new Dealer();
+			this->dealer = dealer;
+			this->addPlayer(this->dealer); // Add dealer in first location
 			playerNumber > 5 ? playerNumber = 5 : playerNumber = playerNumber; // Set maximum opponents to be 5
 			playerNumber < 1 ? playerNumber = 1 : playerNumber = playerNumber; // Set minimum opponents to be 1
 			string name;
 			for(int i = 0; i < playerNumber; i++){
 				cout << "Enter name: ";
 				cin >> name;
-				this->addPlayer(new User(name));
+				User *user = new User(name);
+				this->addPlayer(user);
 			}
-			this->deck = new Deck();
 		}
 		int getRounds(){return rounds;}
-		bool addPlayer(Player player){activePlayers.push_back(player);}
+		bool addPlayer(Player &player){activePlayers.push_back(player);}
 		void printPlayers(){ // Print all player names and chip count
 			// https://stackoverflow.com/questions/22269435/how-to-iterate-through-a-list-of-objects-in-c/22269465
 			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user)
@@ -244,10 +253,10 @@ class Game{
 					activePlayers.erase(player);
 			}
 		}
-		int getTopCurrentPoints(){
+		int getTopcalculateCurrentPoints(){
 			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
-				if(user->currentPoints !> 21)
-					return user->currentPoints;
+				if(user->calculateCurrentPoints !> 21)
+					return user->calculateCurrentPoints;
 			}
 		}
 		void newRound(){
@@ -258,34 +267,35 @@ class Game{
 			deck.deal(dealer);
 
 			// All players play
-			for(list<Player>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+			for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
 				user->play(dealer.showPublicHand());
 			}
 			activePlayers = activePlayers.sort();
-			dealer.play(getTopCurrentPoints());
+			dealer.play(getTopcalculateCurrentPoints());
 
-			for(list<Player>::iterator player = activePlayers.begin(); player != activePlayers.end(); ++player){
-				if(player->getName() != dealer->getName()){ // Do not compare dealer to itself
-					if(player->isBust()){ // If player bust, they lose
+			// for(list<User>::iterator user = activePlayers.begin(); user != activePlayers.end(); ++user){
+			// 		if(user->isBust()){ // If user bust, they lose
 						
-					}
-				}
+			// 		}
 			}
+		}
+		~Game(){
+
 		}
 };
 
 int main(){
-	Game game = new Game(2);
+	Game *game = new Game(2);
 	int user;
 	do{
 		cout << "Enter 1 to play, 2 to check score, and 0 to quit\n... ";
 		cin >> user;
 		switch(user){
 			case 1:
-				game.newRound();
+				game->newRound();
 				break;
 			case 2:
-				game.gameSummary();
+				game->gameSummary();
 				break;
 			case 0:
 				break;
