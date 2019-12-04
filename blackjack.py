@@ -48,10 +48,11 @@ class Pile:
 # Author: Daniel Arpide
 # Derived from Pile, is a stack of cards shared by all players, is instantiated as a full deck of cards
 class Deck (Pile):
-    club = u"\u2663"
-    spade = u"\u2660"
-    heart = u"\u2665"
-    diamond = u"\u2666"
+    #suits = ['♠', '♦', '♥', '♣']
+    club = "\xe2\x99\xa3"
+    spade = "\xe2\x99\xa0"
+    heart = "\xe2\x99\xa5"
+    diamond = "\xe2\x99\xa6"
     suits = [club, spade, heart, diamond]
     #Dictionary of all card values. Key - Name, Value - Points
     values = {'2' : 2, '3' : 3, '4' : 4, '5' : 5, '6' : 6, '7' : 7, '8' : 8, '9' : 9, '10' : 10, 'J' : 10, 'Q' : 10, 'K' : 10, 'A' : 11}
