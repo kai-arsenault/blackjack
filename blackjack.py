@@ -1,5 +1,6 @@
 #! /bin/python
 import random
+import sys
 
 # Use for all class basics and inheritance syntax in python https://www.geeksforgeeks.org/inheritance-in-python/
 
@@ -185,7 +186,7 @@ class User (Player):
     # Users plays until bust or has 21 (perfect score). Each round user has choice of whether to hit
     def play(self):
         if self.isBust():
-            print('\nBust!')
+            print('\nBust!\n')
             self.currentScore = self.getPoints()
             return self.getPoints()
         elif self.getPoints() == 21:
@@ -233,7 +234,7 @@ class Game:
     # Get leaderboard, displays all players (still in the game) in order by number of chips
     def getScoreBoard(self):
         scoreBoard = '\nLeaderboard:\n'
-        sortedUsers = sorted(self.users, key=lambda user: user.getChips())
+        sortedUsers = sorted(self.users, key=lambda user: user.getChips(), reverse = True)
         for i in range(len(sortedUsers)):
             scoreBoard += '#' + str(i + 1) + ' ' + sortedUsers[i].getName() + ' || $' + str(sortedUsers[i].getChips()) + '\n'
         return scoreBoard
@@ -243,13 +244,19 @@ class Game:
         gameSummary += self.getScoreBoard()
         return gameSummary
     # Checks all users to see if they still have chips, if they are out, they are removed from game
+    # Loop will end when finished iterating through all users and none have been removed
     def checkUsers(self):
-        usersToDelete = []
-        for i in range(len(self.users)):
-            if self.users[i].getChips() <= 0:
-                usersToDelete.append(i)
-        for userIndex in usersToDelete:
-            self.users.pop(userIndex)
+        done = False
+        while not done:
+            done = True
+            for i in range(len(self.users)):
+                if self.users[i].getChips() <= 0:
+                    done = False
+                    self.users.pop(i)
+                    break
+        if len(self.users) == 0:
+            print('\nAll players have lost.\nBetter luck next time')
+            sys.exit()
     # Simulates a round of blackjack
     def newRound(self):
         # Start of round sequence: add round, remove users out of chips, shuffle the deck, and deal cards
