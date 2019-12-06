@@ -139,9 +139,7 @@ class Dealer (Player):
             self.play(topScore)
     # Return dealers hand, only displaying the second card
     def displayCards_protected(self):
-        hand = ''
-        for i in range(len(self.cards) - 1):
-            hand += '?? '
+        hand = '?? '
         # https://www.geeksforgeeks.org/python-how-to-get-the-last-element-of-list/
         hand += self.cards[-1].getCard()
         return hand
